@@ -1,10 +1,12 @@
 import aiomysql
+import logging, asyncio
 
 @asyncio.coroutine
 def create_pool(loop, **kw):
     logging.info('create database connection pool...')
-    golbal _pool
-    _pool = yield from aiomysql.create_pool(
+
+    global __pool
+    __pool = yield from aiomysql.create_pool(
         host = kw.get('host', 'localhost'),
         port = kw.get('port', 3306),
         user = kw['user'],
@@ -20,8 +22,8 @@ def create_pool(loop, **kw):
 @asyncio.coroutine
 def select(sql, args, size=None):
     log(sql, args)
-    global _pool
-    with (yield from _pool) as conn:
+    global __pool
+    with (yield from __pool) as conn:
         cur = yield from conn.cursor(aiomysql.Dictcursor)
         yield from cur.execute(sql.replace('?', '%s'), args or ())
         if size:
@@ -35,7 +37,7 @@ def select(sql, args, size=None):
 @asyncio.coroutine
 def execute(sql, args):
     log(sql)
-    with (yield from _pool) as conn:
+    with (yield from __pool) as conn:
         try:
             cur = yield from conn.cursor()
             yield from cur.execute(sql.replace('?', '%s'), args)
@@ -44,6 +46,60 @@ def execute(sql, args):
         except BaseException as e:
             raise
         return affected
+
+
+class Field(object):
+
+    def __init__(self, name, column_type, primary_key, default):
+        self.name = name
+        self.column_type = column_type
+        self.primary_key = primary_key
+        self.default = default
+
+    def __sttr__(self):
+        return '<%s, %s:%s>' % (self.__class__.__name__, self.column_type, self.name)
+
+
+class StringField(Field):
+
+    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
+        super().__init__(name, ddl, primary_key, default)
+
+
+class ModelMetaclass(type):
+
+    def __new__(cls, name, bases, attrs):
+        if name=='model':
+            return type.__new__(cls, name, bases, attrs)
+        tableName = attrs.get('__btale__', None) or name
+        logging.info('found model: % s (table: %s)' % (name, tableName))
+        mappings = dict()
+        fields = []
+        primaryKey = None
+        for k, v in attrs.items():
+            if isinstance(v, Field):
+                logging.info(' found mapping: %s ==> %s' % (k, v))
+                mappings[k] = v
+                if v.primary_key:
+                    raise RuntimeError('Duplicate primary key for field: %s' % k)
+                primaryKey = k
+            else:
+                fields.append(k)
+        if not primaryKey:
+            raise RuntimeError('Primary key not found.')
+        for k in mappings.keys():
+            attrs.pop(k)
+        escaped_fields = list(map(lambda f: '`%s`' % f, fields))
+        attrs['__mappings__'] = mappings
+        attrs['__table__'] = tableName
+        attrs['__primary_key__'] = primaryKey
+        attrs['__fields__'] = fields
+        attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ','.join(escaped_fields), tableName)
+        attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (tableName, ','.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
+        attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, ','.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
+        attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
+        return type.__new__(cls, name, bases, attrs)
+
 
 class Model(dict, metaclass=ModelMetaclass):
 
@@ -74,7 +130,7 @@ class Model(dict, metaclass=ModelMetaclass):
     @asyncio.coroutine
     def find(cls, pk):
         ' find object by primary key '
-        rs = yeild from select('%s where `%s=`?' % (cls.__select__, cls.__primary_key__, [pk], 1))
+        rs = yield from select('%s where `%s=`?' % (cls.__select__, cls.__primary_key__), [pk], 1)
         if len(rs) == 0:
             return None
         return cls(**rs[0]) 
@@ -88,55 +144,7 @@ class Model(dict, metaclass=ModelMetaclass):
             logging.warn('failed to insert record: affected rows: %s' % rows)
     
         
-class Field(object):
 
-    def __init__(self, name, column_type, primary_key, default):
-        self.name = name
-        self.column_type = column_type
-        self.primary_key = primary_key
-        self.default = default
-    
-    def __sttr__(self):
-        return '<%s, %s:%s>' % (self.__class__.__name__, self.column_type, self.name)
-
-class StringField(Field):
-    
-    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
-        super().__init__(name, ddl, primary_key, default)
-
-class ModelMetaclass(type):
-
-    def __new__(cls, name, bases, attrs):
-        if name='model':
-            return type.__new__(cls, name, bases, attrs)
-        tableName = attrs.get('__btale__', None) or name
-        logging.info('found model: % s (table: %s)' % (name, tableName))
-        mappings = dict()
-        fields = []
-        primaryKey = None
-        for k, v in attrs.item():
-            if isinstance(v, Field):
-                logging.info(' found mapping: %s ==> %s' % (k, v))
-                mappings[k] = v
-                if v.primary_key:
-                    raise RuntimeError('Duplicate primary key for field: %s' % k)
-                primaryKey = k
-            else:
-                fields.append(k)
-        if not primaryKey:
-            raise RuntimeError('Primary key not found.')
-        for k in mappings.keys():
-            attrs.pop(k)
-        escaped_fields = list(map(lambda f: '`%s`' % f, fields))
-        attrs['__mappings__'] = mappings
-        attrs['__table__'] = tableName
-        attrs['__primary_key__'] = primaryKey
-        attrs['__fields__'] = fields
-        attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ','.join(escaped_fields), tableName)
-        attrs['__insert__'] = 'insert into `%s` (%s, `%s`) values (%s)' % (tableName, ','.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
-        attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, ','.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
-        attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
-        return type.__new__(cls, name, bases, attrs)
 
 
 
