@@ -1,12 +1,11 @@
 import aiomysql
 import logging, asyncio
 
-@asyncio.coroutine
-def create_pool(loop, **kw):
+async def create_pool(loop, **kw):
     logging.info('create database connection pool...')
 
     global __pool
-    __pool = yield from aiomysql.create_pool(
+    __pool = await aiomysql.create_pool(
         host = kw.get('host', 'localhost'),
         port = kw.get('port', 3306),
         user = kw['user'],
@@ -69,7 +68,7 @@ class StringField(Field):
 class ModelMetaclass(type):
 
     def __new__(cls, name, bases, attrs):
-        if name=='model':
+        if name=='Model':
             return type.__new__(cls, name, bases, attrs)
         tableName = attrs.get('__btale__', None) or name
         logging.info('found model: % s (table: %s)' % (name, tableName))
