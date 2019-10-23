@@ -14,7 +14,7 @@ def get(path):
     '''
 
     def decorator(func):
-        @functools.wrap(func)
+        @functools.wraps(func)
         def wrapper(*args, **kw):
             return func(*args, **kw)
         wrapper.__method__ = 'GET'
@@ -23,8 +23,22 @@ def get(path):
     return decorator
 
 
+def post(path):
+    '''
+    Define decorator @post('/path')
+    '''
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **Kw):
+            return func(*args, **kw)
+        wrapper.__method__='POST'
+        wrapper.__route__=path
+        return wrapper
+    return decorator
+
+
 def has_request_arg(fn):
-    params=inspect-signature(fn).parameters
+    params=inspect.signature(fn).parameters
     for name, param in params.items():
         if param.kind==inspect.Parameter.KEYWORD_ONLY:
             return True
@@ -132,6 +146,12 @@ def add_route(app, fn):
         fn = asyncio.coroutine(fn)
     logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__, ','.join(inspect.signature(fn).parameters.keys())))
     app.router.add_route(method, path, RequestHandler(app, fn))
+
+
+def add_static(app):
+    path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+    app.router.add_static('/static/', path)
+    logging.info('add static %s => %s' % ('/static/', path))
 
 
 def add_routes(app, module_name):

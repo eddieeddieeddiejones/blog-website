@@ -9,8 +9,8 @@ from jinja2 import Environment, FileSystemLoader
 from config import configs
 
 from  coreweb import add_routes, add_static
-from handlers import cookie2user, COOKIE_NAME
-from models import User, Blog, Comment
+# from handlers import cookie2user, COOKIE_NAME
+# from models import User, Blog, Comment
 
 def init_jinja2(app, **kw):
     logging.info('init jinja2...')
