@@ -29,7 +29,7 @@ def post(path):
     '''
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(*args, **Kw):
+        def wrapper(*args, **kw):
             return func(*args, **kw)
         wrapper.__method__='POST'
         wrapper.__route__=path
@@ -38,10 +38,21 @@ def post(path):
 
 
 def has_request_arg(fn):
-    params=inspect.signature(fn).parameters
+    # params=inspect.signature(fn).parameters
+    # for name, param in params.items():
+    #     if param.kind==inspect.Parameter.KEYWORD_ONLY:
+    #         return True
+    sig=inspect.signature(fn)
+    params = sig.parameters
+    found=False
     for name, param in params.items():
-        if param.kind==inspect.Parameter.KEYWORD_ONLY:
-            return True
+        if name=='request':
+            found=True
+            continue
+        if found and (param.kind != inspect.Parameter.VAR_POSITIONAL and param.kind != inspect.Parameter.KEYWORD_ONLY and param.kind != inspect.Parameter.VAR_KEYWORD):
+            raise ValueError('request parameter must be the last named parameter in function: %s%s' % (fn.__name__, str(sig)))
+    return found
+
 
 
 def has_var_kw_arg(fn):
