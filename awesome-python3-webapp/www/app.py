@@ -25,13 +25,13 @@ def init_jinja2(app, **kw):
     path=kw.get('path', None)
     if path is None:
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-        logging.info('set jinja2 template path: %s' % path)
-        env = Environment(loader=FileSystemLoader(path), **options)
-        filters = kw.get('filters', None)
-        if filters is not None:
-            for name, f in filters.items():
-                env.filters[name] = f
-        app['__templating__'] = env
+    logging.info('set jinja2 template path: %s' % path)
+    env = Environment(loader=FileSystemLoader(path), **options)
+    filters = kw.get('filters', None)
+    if filters is not None:
+        for name, f in filters.items():
+            env.filters[name] = f
+    app['__templating__'] = env
 
 
 async def logger_factory(app, handler):
@@ -58,9 +58,9 @@ async def response_factory(app, handler):
             resp.content_type = 'text/html;charset=utf-8'
             return resp
         if isinstance(r, dict):
-            template = r.get('__tempalte')
+            template = r.get('__template__')
             if template is None:
-                resp = web.Response(body=json.dumps(r, ensure_ascii=False, default=lambda o: o.__dict__).encoe('utf-8'))
+                resp = web.Response(body=json.dumps(r, ensure_ascii=False, default=lambda o: o.__dict__).encode('utf-8'))
                 resp.content_type = 'application/json;charset=utf-8'
                 return resp
             else:
@@ -129,7 +129,7 @@ async def init(loop):
     add_routes(app, 'handlers')
     add_static(app)
     srv = await loop.create_server(app.make_handler(), '127.0.0.1', 9001)
-    logging.info('server started at http://127.0.0.1:9000')
+    logging.info('server started at http://127.0.0.1:9001')
     return srv
 
 

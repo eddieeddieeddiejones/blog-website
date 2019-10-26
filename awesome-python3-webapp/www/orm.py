@@ -20,10 +20,10 @@ async def create_pool(loop, **kw):
 
 @asyncio.coroutine
 def select(sql, args, size=None):
-    log(sql, args)
+    logging.info('SQL: %s' % sql)
     global __pool
     with (yield from __pool) as conn:
-        cur = yield from conn.cursor(aiomysql.Dictcursor)
+        cur = yield from conn.cursor(aiomysql.DictCursor)
         yield from cur.execute(sql.replace('?', '%s'), args or ())
         if size:
             re = yield from cur.fetchmany(size)
@@ -101,7 +101,7 @@ class ModelMetaclass(type):
     def __new__(cls, name, bases, attrs):
         if name=='Model':
             return type.__new__(cls, name, bases, attrs)
-        tableName = attrs.get('__btale__', None) or name
+        tableName = attrs.get('__table__', None) or name
         logging.info('found model: % s (table: %s)' % (name, tableName))
         mappings = dict()
         fields = []
@@ -135,7 +135,7 @@ class ModelMetaclass(type):
 class Model(dict, metaclass=ModelMetaclass):
 
     def __init__(self, **kw):
-        super(Model, self).init(**kw)
+        super(Model, self).__init__(**kw)
     def __getattr(self, key):
         try:
             return self[key]
@@ -181,6 +181,8 @@ class Model(dict, metaclass=ModelMetaclass):
                 args.extend(limit)
             else:
                 raise ValueError('Invalid limit value: %s' % str(limit))
+        rs = await select(' '.join(sql), args)
+        return [cls(**r) for r in rs]
 
     
     @classmethod
