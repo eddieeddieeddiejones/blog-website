@@ -9,6 +9,5 @@ async def index(request):
     logging.info('users: %s' % users)
     return {
         '__template__': 'test.html',
-        # 'users': users
-        'a': 1
+        'users': users
     }
