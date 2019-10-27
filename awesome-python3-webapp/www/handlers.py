@@ -13,6 +13,6 @@ async def index(request):
 
     ]
     return {
-        '__template__': 'blog.html',
+        '__template__': 'blogs.html',
         'blogs': blogs
     }
