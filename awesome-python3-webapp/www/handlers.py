@@ -23,3 +23,9 @@ async def api_get_users():
     for u in users:
         u.passwd='******'
     return dict(users=users)
+
+@get('/register')
+def signin():
+    return {
+        '__template__': 'register.html'
+    }
