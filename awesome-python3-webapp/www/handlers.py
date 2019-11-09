@@ -29,3 +29,7 @@ def signin():
     return {
         '__template__': 'register.html'
     }
+
+@post('/api/users')
+def api_register_user(*, email, name, passwd):
+    print('copy')
