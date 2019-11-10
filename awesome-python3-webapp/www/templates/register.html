@@ -58,15 +58,15 @@ $(function () {
             submit: function (event) {
                 event.preventDefault()
                 var $form = $('#vm')
-                // if (!this.name.trim()) {
-                //     return $form.showFormError('请输入名字')
-                // }
-                // if (this.password1.length < 6) {
-                //     return $form.showFormError('口令长度至少为6个字符');
-                // }
-                // if (this.password1 !== this.password2) {
-                //     return $form.showFormError('两次输入的口令不一致');
-                // }
+                if (!this.name.trim()) {
+                    return $form.showFormError('请输入名字')
+                }
+                if (this.password1.length < 6) {
+                    return $form.showFormError('口令长度至少为6个字符');
+                }
+                if (this.password1 !== this.password2) {
+                    return $form.showFormError('两次输入的口令不一致');
+                }
                 var email = this.email.trim().toLowerCase();
                 $form.postJSON('/api/users', {
                     name: this.name.trim(),

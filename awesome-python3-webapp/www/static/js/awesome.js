@@ -38,8 +38,7 @@ $(function() {
                 callback = data;
                 data = {}
             }
-            console.log(this)
-            console.log(this.each)
+            // 不用each应该也是可以的
             // return this.each(function() {
             //     var $form = $(this)
             //     // $form.showFormError()

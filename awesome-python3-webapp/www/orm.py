@@ -35,7 +35,7 @@ def select(sql, args, size=None):
 
 @asyncio.coroutine
 def execute(sql, args):
-    log(sql)
+    logging.info(sql)
     with (yield from __pool) as conn:
         try:
             cur = yield from conn.cursor()
@@ -51,7 +51,7 @@ def create_args_string(num):
     L=[]
     for n in range(num):
         L.append('?')
-    return ', '.join('L')
+    return ', '.join(L)
 
 
 class Field(object):
@@ -136,10 +136,10 @@ class Model(dict, metaclass=ModelMetaclass):
 
     def __init__(self, **kw):
         super(Model, self).__init__(**kw)
-    def __getattr(self, key):
+    def __getattr__(self, key):
         try:
             return self[key]
-        except keyError:
+        except KeyError:
             raise AttributeError(r"'Model' object has no attribute '%s'" % key)
     def __setattr__(self, key, value):
         self[key] = value
@@ -155,10 +155,11 @@ class Model(dict, metaclass=ModelMetaclass):
                 value = field.default() if callable(field.default) else field.default
                 logging.debug('using default value for %s: %s' % (key, str(value)))
                 setattr(self, key, value)
-            return value
+        return value
 
     @classmethod
-    async def findAll(cls, where=None, args=None, **kw):
+    @asyncio.coroutine
+    def findAll(cls, where=None, args=None, **kw):
         ' find objects by where clause. '
         sql = [cls.__select__]
         if where:
@@ -181,7 +182,7 @@ class Model(dict, metaclass=ModelMetaclass):
                 args.extend(limit)
             else:
                 raise ValueError('Invalid limit value: %s' % str(limit))
-        rs = await select(' '.join(sql), args)
+        rs = yield from select(' '.join(sql), args)
         return [cls(**r) for r in rs]
 
     
@@ -193,15 +194,18 @@ class Model(dict, metaclass=ModelMetaclass):
         if len(rs) == 0:
             return None
         return cls(**rs[0]) 
-    
+
     @asyncio.coroutine
+
     def save(self):
-        args = list(map(self.getValueOrDefault. self.__fields__))
+        sql_values = map(self.getValueOrDefault, self.__fields__)
+        print('sql_values:%s' % sql_values)
+        args = list(sql_values)
+        # args = list(map(self.getValueOrDefault, self.__fields__))
         args.append(self.getValueOrDefault(self.__primary_key__))
         rows = yield from execute(self.__insert__, args)
         if rows != 1:
             logging.warn('failed to insert record: affected rows: %s' % rows)
-    
         
 
 
