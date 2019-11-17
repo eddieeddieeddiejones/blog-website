@@ -68,7 +68,7 @@ $(function() {
                 var $form = $(this)
                 var $submit = $form && $form.find('button[type=submit]')
                 var $buttons = $form && $form.find('button')
-                var $i = $submit && $submit.find(i) 
+                var $i = $submit && $submit.find('i')
                 var iconClass = $i && $i.attr('class')
                 if (! $form.is('form')) {
                     console.error('Cannot call showFormLoading() on non-form object.')
