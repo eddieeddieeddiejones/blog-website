@@ -148,6 +148,13 @@ def authenticate(*, email, passwd):
     return r
 
 
+@get('/api/blogs/{id}')
+def api_get_blog(*, id):
+    blog = yield from Blog.find(id)
+    return blog
+
+
+
 @post('/api/blogs')
 def api_create_blog(request, *, name, summary, content):
     check_admin(request)
