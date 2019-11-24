@@ -26,7 +26,7 @@ def select(sql, args, size=None):
         cur = yield from conn.cursor(aiomysql.DictCursor)
         yield from cur.execute(sql.replace('?', '%s'), args or ())
         if size:
-            re = yield from cur.fetchmany(size)
+            rs = yield from cur.fetchmany(size)
         else:
             rs = yield from cur.fetchall()
         yield from cur.close()
@@ -34,15 +34,21 @@ def select(sql, args, size=None):
         return rs
 
 @asyncio.coroutine
-def execute(sql, args):
+def execute(sql, args, autocommit=True):
     logging.info(sql)
     with (yield from __pool) as conn:
+        if not autocommit:
+            yield from conn.begin()
         try:
             cur = yield from conn.cursor()
             yield from cur.execute(sql.replace('?', '%s'), args)
             affected = cur.rowcount
             yield from cur.close()
+            if not autocommit:
+                yield from conn.commit()
         except BaseException as e:
+            if not autocommit:
+                yield from conn.rollback()
             raise
         return affected
 
@@ -190,7 +196,7 @@ class Model(dict, metaclass=ModelMetaclass):
     @asyncio.coroutine
     def find(cls, pk):
         ' find object by primary key '
-        rs = yield from select('%s where `%s=`?' % (cls.__select__, cls.__primary_key__), [pk], 1)
+        rs = yield from select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
         if len(rs) == 0:
             return None
         return cls(**rs[0]) 
