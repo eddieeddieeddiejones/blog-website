@@ -125,9 +125,9 @@ def manage_create_blog():
 @post('/api/authenticate')
 def authenticate(*, email, passwd):
     if not email:
-        raise  APIValueError('email', 'Invalid email.')
+        raise APIValueError('email', 'Invalid email.')
     if not passwd:
-        raise  APIValueError('passwd', 'Invalid password.')
+        raise APIValueError('passwd', 'Invalid password.')
     users = yield from User.findAll('email=?', [email])
     if len(users) == 0:
         raise APIValueError('email', 'email not exist.')
