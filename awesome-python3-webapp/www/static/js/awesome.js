@@ -114,3 +114,59 @@ function _httpJSON (method, url, data, callback) {
         return callback({'error': 'http_bad_response', 'data': '' + jqXHR.status, 'message': '网络好想出问题了(http' + jqXHR.status + ')'})
     })
 }
+
+function getJSON(url, data, callback) {
+    if (arguments.length === 2) {
+        callback = data
+        data = {}
+    }
+    if (typeof(data) === 'object') {
+        var arr = []
+        $.each(data, function (k, v) {
+            arr.push(k + '=' + encodeURIComponent(v))
+        })
+        data = arr.join('&')
+    }
+    _httpJSON('GET', url, data, callback)
+}
+
+function postJSON (url, data, callback) {
+    if (arguments.length === 2) {
+        callback = data
+        data = {}
+    }
+    _httpJSON('POST', url, data, callback)
+}
+
+function _display_error ($obj, err) {
+    if ($obj.is(':visible')) {
+        $obj.hide()
+    }
+    var msg = err.message || String(err)
+    var L = ['div class="uk-alert uk-alert-danger']
+    L.push('<p>Error: ')
+    L.push(msg)
+    L.push('</p><p>Code: ')
+    L.push(err.error || '500')
+    L.push('</p></div>')
+    $obj.html(L.join('')).slideDown()
+}
+
+function fatal (err) {
+    _display_error($('#loading'), err)
+}
+
+// extends Vue
+if (typeof(Vue) !== 'undefined') {
+    Vue.filter('datetime', function (value) {
+        var d = value
+        if (typeof(value) === 'number') {
+            d = new Date(value)
+        }
+        return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getHours() + '-' + d.getMinutes()
+    })
+    // todo...
+    Vue.component('pagination', {
+        template: '这是分页组件'
+    })
+}

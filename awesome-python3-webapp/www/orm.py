@@ -191,6 +191,25 @@ class Model(dict, metaclass=ModelMetaclass):
         rs = yield from select(' '.join(sql), args)
         return [cls(**r) for r in rs]
 
+
+    @classmethod
+    @asyncio.coroutine
+    def findNumber(cls, selectField, where=None, args=None):
+        """
+        find number by select and where.
+        :param selectField:
+        :param where:
+        :param args:
+        :return:
+        """
+        sql = ['select %s _num_ from `%s`' % (selectField, cls.__table__)]
+        if where:
+            sql.append('where')
+            sql.append(where)
+        rs = yield from select(' '.join(sql), args, 1)
+        if len(rs) == 0:
+            return None
+        return rs[0]['_num_']
     
     @classmethod
     @asyncio.coroutine

@@ -2,7 +2,7 @@
 import re, time, json, logging, hashlib, base64, asyncio
 from coreweb import get, post
 from models import User, Comment, Blog, next_id
-from apis import APIValueError, APIResourceNotFoundError
+from apis import APIValueError, APIResourceNotFoundError, Page
 from aiohttp import web
 from config import configs
 
@@ -12,6 +12,16 @@ _COOKIE_KEY = configs.session.secret
 def check_admin(request):
     if request.__user__ is None or not request.__user__.admin:
         raise APIPermissionError()
+
+def get_page_index(page_str):
+    p = 1
+    try:
+        p = int(page_str)
+    except ValueError as e:
+        pass
+    if p < 1:
+        p = 1
+    return p
 
 def user2cookie(user, max_age):
     '''
@@ -112,6 +122,13 @@ def signin():
         '__template__': 'signin.html'
     }
 
+@get('/manage/blogs')
+def manage_blogs(*, page='1'):
+    return {
+        '__template__': 'manage_blogs.html',
+        'page_index': get_page_index(page)
+    }
+
 
 @get('/manage/blogs/create')
 def manage_create_blog():
@@ -154,7 +171,6 @@ def api_get_blog(*, id):
     return blog
 
 
-
 @post('/api/blogs')
 def api_create_blog(request, *, name, summary, content):
     check_admin(request)
@@ -167,3 +183,15 @@ def api_create_blog(request, *, name, summary, content):
     blog = Blog(user_id=request.__user__.id, user_name=request.__user__.name, user_image=request.__user__.image, name=name.strip(), summary=summary.strip(), content=content.strip())
     yield from blog.save()
     return blog
+
+
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blogs=())
+    blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, blogs=blogs)
+
