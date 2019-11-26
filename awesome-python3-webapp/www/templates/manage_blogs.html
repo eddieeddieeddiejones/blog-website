@@ -62,7 +62,7 @@
 function initVM(data) {
     var vm = new Vue({
         el: '#vm',
-        // to avoid conflict between vue and jinja2, replace {{}} with {[]} in Vue
+        {# to avoid conflict between vue and jinja2, replace {{}} with { []} in Vue #}
         delimiters:['{[', ']}'],
         data: {
             blogs: data.blogs,

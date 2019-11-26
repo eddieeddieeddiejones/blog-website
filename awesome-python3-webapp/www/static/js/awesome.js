@@ -167,7 +167,7 @@ if (typeof(Vue) !== 'undefined') {
     })
     // todo...
     Vue.component('pagination', {
-        template: '这是分页组件'
+        template: '<div>这是分页组件</div>'
     })
 }
 
