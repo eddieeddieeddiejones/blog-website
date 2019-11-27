@@ -50,9 +50,25 @@
             </tr>
         </tbody>
     </table>
-
-    <!--<div v-component="pagination" v-with="page"></div>-->
-    <pagination></pagination>
+    <ul class="uk-pagination">
+        <li v-if="! has_previous" class="uk-disabled">
+            <span><i class="uk-icon-angle-double-left"></i></span>
+        </li>
+        <li v-if="has_previous">
+            <a @click="gotoPage(page_index-1)" href="javascript:void(0);">
+                <i class="uk-icon-angle-double-left"></i>
+            </a>
+        </li>
+        <li class="uk-active"><span v-text="page_index"></span></li>
+        <li v-if="! has_next" class="uk-disabled">
+            <span><i class="uk-icon-angle-double-right"></i></span>
+        </li>
+        <li v-if="has_next">
+            <a @click="gotoPage(page_index+1)" href="javascript:void(0);">
+                <i class="uk-icon-angle-double-right"></i>
+            </a>
+        </li>
+    </ul>
 </div>
 {% endblock %}
 
@@ -62,11 +78,14 @@
 function initVM(data) {
     var vm = new Vue({
         el: '#vm',
-        {# to avoid conflict between vue and jinja2, replace {{}} with { []} in Vue #}
+        {# to avoid conflict between vue and jinja2, replace {{}} with {[]} in Vue #}
         delimiters:['{[', ']}'],
         data: {
             blogs: data.blogs,
-            page: data.page
+            page: data.page,
+            has_previous: data.page.has_previous,
+            has_next: data.page.has_next,
+            page_index: {{page_index}}
         },
         methods: {
             edit_blog: function (blog) {

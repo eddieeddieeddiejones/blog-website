@@ -115,7 +115,7 @@ class RequestHandler(object):
                     kw=dict(**params)
                 else:
                     return webHTTPBadRequest('Unsupported Content-Type: %s' % request.content_type)
-            if request.method=='GEY':
+            if request.method=='GET':
                 qs=request.query_string
                 if qs:
                     kw=dict()
