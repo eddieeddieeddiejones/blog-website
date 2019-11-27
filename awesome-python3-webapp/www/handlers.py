@@ -227,3 +227,10 @@ def api_update_blog(id, request, *, name, summary, content):
     yield from blog.update()
     return blog
 
+@post('/api/blogs/{id}/delete')
+def api_delete_blog(request, *, id):
+    check_admin(request)
+    blog = yield from Blog.find(id)
+    yield from blog.remove()
+    return dict(id=id)
+
