@@ -195,3 +195,11 @@ def api_blogs(*, page='1'):
     blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
     return dict(page=p, blogs=blogs)
 
+@get('/signout')
+def signout(request):
+    referer = request.headers.get('Referer')
+    r = web.HTTPFound(referer or '/')
+    r.set_cookie(COOKIE_NAME, '-deleted-', max_age=0, httponly=True)
+    logging.info('user signed out.')
+    return r
+
