@@ -255,8 +255,19 @@ function parseQueryString () {
 }
 
 function gotoPage(i) {
-
     var r = parseQueryString()
     r.page = i
     location.assign('?' + $.param(r))
+}
+
+function refresh () {
+    var
+        t = new Date().getTime(),
+        url = location.pathname;
+    if (location.search) {
+        url = url + location.search + '&t=' + t
+    } else {
+        url = url + '?t=' + t
+    }
+    location.assign(url)
 }
