@@ -265,3 +265,10 @@ def get_blog(id):
         'blog': blog,
         'comments': comments
     }
+
+@get('/manage/comments')
+def manage_comments(*, page='1'):
+    return {
+        '__template__': 'manage_comments.html',
+        'page_index': get_page_index(page)
+    }
