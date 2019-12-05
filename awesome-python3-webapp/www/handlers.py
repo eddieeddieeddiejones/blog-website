@@ -69,7 +69,7 @@ def cookie2user(cookie_str):
 @get('/')
 async def index(request):
     blogs=[
-        Blog(id=1, name='test blog', summary='我是一个简介123456', created_at=time.time()-120),
+        Blog(id=1, name='test blog', summary='我是一个简介12345', created_at=time.time()-120),
         Blog(id=2, name='test blog', summary='我是一个简介', created_at=time.time() - 3600),
         Blog(id=3, name='test blog', summary='我是一个简介', created_at=time.time() - 7020),
         Blog(id=4, name='test blog', summary='我是一个简介', created_at=time.time() - 10400),
