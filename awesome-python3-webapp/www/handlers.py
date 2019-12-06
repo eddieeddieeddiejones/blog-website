@@ -67,16 +67,17 @@ def cookie2user(cookie_str):
 
 
 @get('/')
-async def index(request):
-    blogs=[
-        Blog(id=1, name='test blog', summary='我是一个简介12345', created_at=time.time()-120),
-        Blog(id=2, name='test blog', summary='我是一个简介', created_at=time.time() - 3600),
-        Blog(id=3, name='test blog', summary='我是一个简介', created_at=time.time() - 7020),
-        Blog(id=4, name='test blog', summary='我是一个简介', created_at=time.time() - 10400),
-
-    ]
+def index(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    page = Page(num)
+    if num == 0:
+        blogs = []
+    else:
+        blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
     return {
         '__template__': 'blogs.html',
+        'page': page,
         'blogs': blogs
     }
 
