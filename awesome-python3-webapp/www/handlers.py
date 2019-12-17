@@ -89,11 +89,10 @@ async def api_get_users():
     return dict(users=users)
 
 @get('/register')
-def signin():
+def register():
     return {
         '__template__': 'register.html'
     }
-
 _RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$')
 _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
 
@@ -260,7 +259,7 @@ def get_blog(id):
     comments = yield from Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
     for c in comments:
         c.html_content = text2html(c.content)
-    blog.html_content = markdown2.markdown(blog.content)
+    blog.html_content = markdown2.markdown(blog.content, extras=["fenced-code-blocks"])
     return {
         '__template__': 'blog.html',
         'blog': blog,
