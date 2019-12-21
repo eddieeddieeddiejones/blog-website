@@ -31,7 +31,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr v-repeat="comment: comments">
+            <tr v-for="comment in  comments">
                 <td>
                     <span v-text="comment.user_name"></span>
                 </td>
@@ -42,12 +42,12 @@
                     <span v-text="comment.created_at.toDateTime()"></span>
                 </td>
                 <td>
-                    <a href="#0" v-on="click: delete_comment(comment)"><i class="uk-icon-trash-o"></i>
+                    <a href="#0" @click="delete_comment(comment)"><i class="uk-icon-trash-o"></i>
                 </td>
             </tr>
         </tbody>
     </table>
-    <div v-component="pagination" v-with="page"></div>
+    <!-- <div v-component="pagination" v-with="page"></div> -->
 </div>
 {% endblock %}
 
@@ -63,9 +63,9 @@ function initVM(data) {
         },
         methods: {
             delete_comment: function (comment) {
-                var comment = comment.content.length > 20 ? comment.content.substring(0, 20) + '...' : comment.content
-                if (confirm('确认要删除评论"' + comment.content + '"?删除后不可恢复！')) {
-                    postJSON('/api/comments' + comment.id + '/delete', function (err, result) {
+                var contennt = comment.content.length > 20 ? comment.content.substring(0, 20) + '...' : comment.content
+                if (confirm('确认要删除评论"' + contennt + '"?删除后不可恢复！')) {
+                    postJSON('/api/comments/' + comment.id + '/delete', function (err, result) {
                         if (err) {
                             return Error(err)
                         }
