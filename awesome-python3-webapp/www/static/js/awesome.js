@@ -6,7 +6,7 @@ $(function() {
             return this.each(function() {
                 var $form = $(this)
                 var $alert = $form && $form.find('.uk-alert-danger')
-                fileName = err && err.data
+                fieldName = err && err.data
                 if (!$form.is('form')) {
                     console.error('Cannot call showFormError() on non-form object.')
                     return
