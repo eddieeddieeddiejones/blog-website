@@ -291,3 +291,10 @@ def api_delete_comments(id, request):
         raise APIResourceNotFoundError('Comment')
     yield from c.remove()
     return dict(id=id)
+
+@get('/manage/users')
+def manage_users(*, page='1'):
+    return {
+        '__template__': 'manage_users.html',
+        'page_index': get_page_index(page)
+    }
