@@ -2,7 +2,7 @@
 import re, time, json, logging, hashlib, base64, asyncio
 from coreweb import get, post
 from models import User, Comment, Blog, next_id
-from apis import APIValueError, APIResourceNotFoundError, Page
+from apis import APIValueError, APIResourceNotFoundError, Page, APIError
 from aiohttp import web
 from config import configs
 import markdown2
