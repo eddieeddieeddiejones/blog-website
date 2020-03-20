@@ -8,7 +8,8 @@ from fabric.api import *
 
 env.user = 'root'
 env.sudo_user = 'root'
-env.hosts = ['45.77.177.58']
+# replace deploy ip with yours
+env.hosts = ['207.148.98.152']
 
 
 db_user = 'root'
