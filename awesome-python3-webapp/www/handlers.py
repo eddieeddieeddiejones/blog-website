@@ -259,7 +259,7 @@ def get_blog(id):
     comments = yield from Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
     for c in comments:
         c.html_content = text2html(c.content)
-    blog.html_content = markdown2.markdown(blog.content, extras=["fenced-code-blocks"])
+    blog.html_content = markdown2.markdown(blog.content, extras=["fenced-code-blocks", "tables"])
     return {
         '__template__': 'blog.html',
         'blog': blog,
